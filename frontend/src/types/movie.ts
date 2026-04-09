@@ -37,9 +37,10 @@ export interface MovieCompact {
 }
 
 export interface CastMember {
-  person: Person;
+  id: number;
+  name: string;
   character: string;
-  order: number;
+  profile_path: string | null;
 }
 
 export interface WatchProvider {

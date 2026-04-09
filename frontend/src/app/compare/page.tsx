@@ -2,43 +2,56 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
-  Search, Star, Clock, Calendar, DollarSign, ArrowLeftRight,
-  Loader2, X, Users, TrendingUp,
+  Search, ArrowLeftRight,
+  Loader2, X,
 } from "lucide-react";
 import { moviesAPI } from "@/lib/api";
-import { posterUrl, formatRuntime, formatCurrency, ratingColor } from "@/lib/utils";
-import type { MovieCompact } from "@/types/movie";
-
+import { posterUrl, formatRuntime, formatCurrency } from "@/lib/utils";
+import type { MovieCompact, MovieDetail, Genre, CastMember } from "@/types/movie";
 export default function ComparePage() {
   const [searchA, setSearchA] = useState("");
   const [searchB, setSearchB] = useState("");
   const [resultsA, setResultsA] = useState<MovieCompact[]>([]);
   const [resultsB, setResultsB] = useState<MovieCompact[]>([]);
-  const [movieA, setMovieA] = useState<any>(null);
-  const [movieB, setMovieB] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [movieA, setMovieA] = useState<MovieDetail | null>(null);
+  const [movieB, setMovieB] = useState<MovieDetail | null>(null);
   const [searchingA, setSearchingA] = useState(false);
   const [searchingB, setSearchingB] = useState(false);
 
   async function searchMovies(query: string, side: "A" | "B") {
     if (query.length < 2) {
-      side === "A" ? setResultsA([]) : setResultsB([]);
+      if (side === "A") {
+        setResultsA([]);
+      } else {
+        setResultsB([]);
+      }
       return;
     }
-    side === "A" ? setSearchingA(true) : setSearchingB(true);
+    if (side === "A") {
+      setSearchingA(true);
+    } else {
+      setSearchingB(true);
+    }
     try {
       const data = await moviesAPI.search(query);
-      side === "A" ? setResultsA(data.results.slice(0, 5)) : setResultsB(data.results.slice(0, 5));
-    } catch { }
-    finally {
-      side === "A" ? setSearchingA(false) : setSearchingB(false);
+      if (side === "A") {
+        setResultsA(data.results.slice(0, 5));
+      } else {
+        setResultsB(data.results.slice(0, 5));
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      if (side === "A") {
+        setSearchingA(false);
+      } else {
+        setSearchingB(false);
+      }
     }
   }
 
   async function selectMovie(tmdbId: number, side: "A" | "B") {
-    setLoading(true);
     try {
       const data = await moviesAPI.getDetail(tmdbId);
       if (side === "A") {
@@ -52,8 +65,6 @@ export default function ComparePage() {
       }
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -93,7 +104,15 @@ export default function ComparePage() {
     );
   }
 
-  function MovieSelector({ side, search, setSearch, results, searching, movie, clear }: any) {
+  function MovieSelector({ side, search, setSearch, results, searching, movie, clear }: {
+    side: "A" | "B";
+    search: string;
+    setSearch: (s: string) => void;
+    results: MovieCompact[];
+    searching: boolean;
+    movie: MovieDetail | null;
+    clear: () => void;
+  }) {
     return (
       <div className="flex-1 min-w-0">
         {movie ? (
@@ -101,7 +120,7 @@ export default function ComparePage() {
             <div className="relative inline-block">
               <div className="w-40 h-60 rounded-xl overflow-hidden mx-auto mb-3 shadow-xl border border-white/[0.06]">
                 <Image
-                  src={posterUrl(movie.poster_path)}
+                  src={posterUrl(movie.poster_url)}
                   alt={movie.title}
                   fill
                   className="object-cover"
@@ -140,7 +159,7 @@ export default function ComparePage() {
 
             {results.length > 0 && (
               <div className="absolute top-14 left-0 right-0 glass-card rounded-xl p-1.5 z-20 shadow-xl animate-fade-in">
-                {results.map((m: any) => (
+                {results.map((m: MovieCompact) => (
                   <button
                     key={m.id || m.tmdb_id}
                     onClick={() => selectMovie(m.tmdb_id || m.id, side)}
@@ -148,7 +167,7 @@ export default function ComparePage() {
                   >
                     <div className="w-8 h-12 rounded bg-surface-3 overflow-hidden flex-shrink-0">
                       <Image
-                        src={posterUrl(m.poster_url || m.poster_path, "w185")}
+                        src={posterUrl(m.poster_url, "w185")}
                         alt={m.title}
                         width={32}
                         height={48}
@@ -246,7 +265,7 @@ export default function ComparePage() {
             <div className="flex gap-6">
               <div className="flex-1 text-right">
                 <div className="flex flex-wrap gap-1.5 justify-end">
-                  {(movieA.genres || []).map((g: any) => (
+                  {(movieA.genres || []).map((g: Genre) => (
                     <span key={g.id} className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/50">
                       {g.name}
                     </span>
@@ -256,7 +275,7 @@ export default function ComparePage() {
               <div className="flex-shrink-0 w-px bg-white/[0.06]" />
               <div className="flex-1">
                 <div className="flex flex-wrap gap-1.5">
-                  {(movieB.genres || []).map((g: any) => (
+                  {(movieB.genres || []).map((g: Genre) => (
                     <span key={g.id} className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/50">
                       {g.name}
                     </span>
@@ -271,7 +290,7 @@ export default function ComparePage() {
             <p className="text-[11px] uppercase tracking-wider text-white/25 font-semibold text-center mb-4">Top Cast</p>
             <div className="flex gap-6">
               <div className="flex-1 space-y-1.5">
-                {(movieA.credits?.cast || []).slice(0, 5).map((c: any) => (
+                {(movieA.cast || []).slice(0, 5).map((c: CastMember) => (
                   <div key={c.id} className="flex items-center gap-2 justify-end">
                     <div className="text-right">
                       <p className="text-[12px] text-white/60">{c.name}</p>
@@ -293,7 +312,7 @@ export default function ComparePage() {
               </div>
               <div className="flex-shrink-0 w-px bg-white/[0.06]" />
               <div className="flex-1 space-y-1.5">
-                {(movieB.credits?.cast || []).slice(0, 5).map((c: any) => (
+                {(movieB.cast || []).slice(0, 5).map((c: CastMember) => (
                   <div key={c.id} className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full overflow-hidden bg-surface-3 flex-shrink-0">
                       {c.profile_path ? (

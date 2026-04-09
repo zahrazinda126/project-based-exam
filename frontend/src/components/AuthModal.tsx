@@ -41,7 +41,8 @@ export default function AuthModal({ open, onClose, initialMode = "login" }: Auth
       setUsername("");
       setEmail("");
       setPassword("");
-    } catch (err: any) {
+    } catch (err) {
+      console.error(err);
       setError(
         mode === "login"
           ? "Invalid username or password"

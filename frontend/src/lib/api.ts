@@ -7,7 +7,6 @@ import type {
   AuthTokens,
   User,
   GenrePreference,
-  WatchlistItem,
 } from "@/types/movie";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
@@ -141,7 +140,7 @@ export const moviesAPI = {
   topRated: (page = 1) =>
     apiFetch<PaginatedResponse<MovieCompact>>(`/movies/top-rated/?page=${page}`),
 
-  getDetail: (tmdbId: number) => apiFetch<any>(`/movies/tmdb/${tmdbId}/`),
+  getDetail: (tmdbId: number) => apiFetch<MovieDetail>(`/movies/tmdb/${tmdbId}/`),
 
   getRecommendations: (movieId: number) =>
     apiFetch<MovieCompact[]>(`/movies/list/${movieId}/recommendations/`),
@@ -152,10 +151,10 @@ export const moviesAPI = {
   getWikipedia: (movieId: number) =>
     apiFetch<{ summary: string; url: string }>(`/movies/list/${movieId}/wikipedia/`),
 
-  getMoods: () => apiFetch<any[]>("/movies/moods/"),
+  getMoods: () => apiFetch<{ id: number; name: string; slug: string }[]>("/movies/moods/"),
 
   getMoodMovies: (slug: string, page = 1) =>
-    apiFetch<any>(`/movies/moods/${slug}/?page=${page}`),
+    apiFetch<PaginatedResponse<MovieCompact> & { mood: { label: string; description: string } }>(`/movies/moods/${slug}/?page=${page}`),
 
   discover: (params: Record<string, string | number>) => {
     const qs = new URLSearchParams();
@@ -166,7 +165,7 @@ export const moviesAPI = {
   },
 
   compare: (id1: number, id2: number) =>
-    apiFetch<{ movies: any[] }>(`/movies/compare/?ids=${id1},${id2}`),
+    apiFetch<{ movies: MovieDetail[] }>(`/movies/compare/?ids=${id1},${id2}`),
 };
 
 // Genres API
@@ -215,20 +214,20 @@ export const recommendationsAPI = {
       body: JSON.stringify(data),
     }),
 
-  getWatchlist: () => apiFetch<WatchlistItem[]>("/recommendations/watchlist/"),
+  getWatchlist: () => apiFetch<{ id: number; movie: MovieCompact }[]>("/recommendations/watchlist/"),
 
   addToWatchlist: (data: {
     movie_tmdb_id: number;
     movie_title: string;
     poster_path: string;
   }) =>
-    apiFetch<WatchlistItem>("/recommendations/watchlist/", {
+    apiFetch<{ id: number; movie: MovieCompact }>("/recommendations/watchlist/", {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
   markWatched: (id: number) =>
-    apiFetch<WatchlistItem>(`/recommendations/watchlist/${id}/mark_watched/`, {
+    apiFetch<{ id: number; movie: MovieCompact }>(`/recommendations/watchlist/${id}/mark_watched/`, {
       method: "POST",
     }),
 

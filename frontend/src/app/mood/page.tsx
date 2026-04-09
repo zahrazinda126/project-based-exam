@@ -4,8 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Sparkles, Heart, Zap, Flame, Brain, Smile, Ghost,
-  Mountain, Baby, BookOpen, ArrowLeft, Loader2,
+  Sparkles, Heart, Zap, Brain, Smile, Ghost,
+  Mountain, Baby, BookOpen, Loader2,
 } from "lucide-react";
 import MovieCard, { MovieCardSkeleton } from "@/components/MovieCard";
 import { moviesAPI } from "@/lib/api";
@@ -30,7 +30,7 @@ function MoodContent() {
   const activeMood = searchParams.get("mood") || "";
 
   const [movies, setMovies] = useState<MovieCompact[]>([]);
-  const [moodInfo, setMoodInfo] = useState<any>(null);
+  const [moodInfo, setMoodInfo] = useState<{ label: string; description: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);

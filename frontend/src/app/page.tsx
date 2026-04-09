@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TrendingUp, Star, Clapperboard, Flame, Crown } from "lucide-react";
+import { Star, Clapperboard, Flame, Crown } from "lucide-react";
 import MovieCarousel from "@/components/MovieCarousel";
 import GenreGrid from "@/components/GenreGrid";
 import HeroSection from "@/components/HeroSection";
 import PersonalizedSection from "@/components/PersonalizedSection";
 import MoodTeaser from "@/components/MoodTeaser";
 import { moviesAPI } from "@/lib/api";
-import type { MovieCompact } from "@/types/movie";
+import type { MovieCompact, PaginatedResponse } from "@/types/movie";
 
 export default function HomePage() {
-  const [trending, setTrending] = useState<any>({});
+  const [trending, setTrending] = useState<PaginatedResponse<MovieCompact>>({ results: [], page: 1 });
   const [nowPlaying, setNowPlaying] = useState<MovieCompact[]>([]);
   const [topRated, setTopRated] = useState<MovieCompact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,7 @@ export default function HomePage() {
 
   return (
     <div className="relative">
-      <HeroSection movies={trending} />
+      <HeroSection movies={trending.results} />
 
       <div className="relative z-10 -mt-28 space-y-20 pb-24">
 
@@ -48,7 +48,7 @@ export default function HomePage() {
           title="Trending This Week"
           subtitle="The most talked about movies right now"
           icon={<Flame className="w-4 h-4 text-orange-400" />}
-          movies={trending}
+          movies={trending.results}
           loading={loading}
           href="/search?sort=trending"
         />

@@ -5,10 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { Play, Info, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { backdropUrl, posterUrl } from "@/lib/utils";
-import type { MovieCompact } from "@/types/movie";
+import type { MovieCompact, Genre } from "@/types/movie";
 
 interface HeroSectionProps {
-  movies: MovieCompact[];
+  movies: (MovieCompact & { backdrop_url?: string; poster_path?: string })[];
 }
 
 const SLIDE_DURATION = 3000; 
@@ -60,7 +60,6 @@ export default function HeroSection({ movies }: HeroSectionProps) {
   }
 
   const movie = heroMovies[activeIndex];
-  const bgUrl = backdropUrl((movie as any).backdrop_url || movie.poster_url);
 
   return (
     <div
@@ -69,7 +68,7 @@ export default function HeroSection({ movies }: HeroSectionProps) {
       onMouseLeave={() => setIsPaused(false)}
     >
       {heroMovies.map((m, i) => {
-        const bg = backdropUrl((m as any).backdrop_url || m.poster_url);
+        const bg = backdropUrl(m.backdrop_url || m.poster_url);
         return (
           <div
             key={m.id || m.tmdb_id}
@@ -126,7 +125,7 @@ export default function HeroSection({ movies }: HeroSectionProps) {
           {/* Genres */}
           {movie.genres && movie.genres.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-7">
-              {movie.genres.slice(0, 4).map((g: any) => (
+              {movie.genres.slice(0, 4).map((g: Genre) => (
                 <span
                   key={g.id || g.tmdb_id || g.name}
                   className="px-3 py-1 rounded-full bg-white/[0.06] border border-white/[0.08] text-[11px] font-medium text-white/60 uppercase tracking-wider"
@@ -203,7 +202,7 @@ export default function HeroSection({ movies }: HeroSectionProps) {
       
       <div className="hidden xl:flex absolute right-10 bottom-32 z-20 gap-3">
         {heroMovies.slice(0, 5).map((m, i) => {
-          const pUrl = posterUrl(m.poster_url || (m as any).poster_path, "w185");
+          const pUrl = posterUrl(m.poster_url || "", "w185");
           return (
             <button
               key={m.id || m.tmdb_id}
